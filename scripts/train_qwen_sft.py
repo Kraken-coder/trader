@@ -59,14 +59,15 @@ def main() -> None:
     parser.add_argument("--model-name", type=str, default="Qwen/Qwen2.5-1.5B-Instruct")
     parser.add_argument("--dataset", type=str, default="sft_corpus/qwen_trader_seed.jsonl")
     parser.add_argument("--output-dir", type=str, default="qwen_trader_sft")
-    parser.add_argument("--max-length", type=int, default=2048)
+    parser.add_argument("--max-length", type=int, default=1024)
     parser.add_argument("--epochs", type=float, default=1.0)
-    parser.add_argument("--train-batch-size", type=int, default=2)
-    parser.add_argument("--eval-batch-size", type=int, default=2)
-    parser.add_argument("--grad-accum", type=int, default=8)
+    parser.add_argument("--train-batch-size", type=int, default=1)
+    parser.add_argument("--eval-batch-size", type=int, default=1)
+    parser.add_argument("--grad-accum", type=int, default=16)
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--weight-decay", type=float, default=0.0)
     parser.add_argument("--warmup-ratio", type=float, default=0.03)
+    parser.add_argument("--warmup-steps", type=int, default=None)
     parser.add_argument("--logging-steps", type=int, default=10)
     parser.add_argument("--save-steps", type=int, default=200)
     parser.add_argument("--eval-split", type=float, default=0.02)
@@ -127,7 +128,24 @@ def main() -> None:
         )
         model = get_peft_model(model, lora_config)
 
+    if hasattr(model, "gradient_checkpointing_enable"):
+        model.gradient_checkpointing_enable()
+    if hasattr(model, "enable_input_require_grads"):
+        model.enable_input_require_grads()
+
     collator = ChatDataCollator(tokenizer)
+
+    total_update_steps = max(
+        1,
+        int(
+            ((len(train_dataset) / max(1, args.train_batch_size)) / max(1, args.grad_accum))
+            * max(1.0, args.epochs)
+        ),
+    )
+    warmup_steps = args.warmup_steps if args.warmup_steps is not None else max(
+        1,
+        int(total_update_steps * args.warmup_ratio),
+    )
 
     training_args = TrainingArguments(
         output_dir=args.output_dir,
@@ -137,7 +155,7 @@ def main() -> None:
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.lr,
         weight_decay=args.weight_decay,
-        warmup_ratio=args.warmup_ratio,
+        warmup_steps=warmup_steps,
         logging_steps=args.logging_steps,
         save_steps=args.save_steps,
         eval_strategy="steps" if eval_dataset is not None else "no",

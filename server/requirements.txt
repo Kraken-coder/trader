@@ -1,6 +1,24 @@
-openenv[core]>=0.2.0
+openenv[core]>=0.2.2
+
+# Server runtime
 fastapi>=0.115.0
 uvicorn>=0.24.0
+pydantic>=2.8.0
+
+# Data / parquet handling used by the environment and corpus builder
+pandas>=2.2.0
+pyarrow>=15.0.0
+numpy>=1.24.0
+
+# SFT + GRPO training stack
+torch>=2.2.0
+transformers>=4.44.0
+datasets>=2.20.0
+accelerate>=0.33.0
+peft>=0.12.0
+
+# Optional, but commonly useful for local model/tokenizer workflows
+safetensors>=0.4.3
 
 
 
