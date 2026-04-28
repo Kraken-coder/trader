@@ -1,0 +1,2 @@
+[console_scripts]
+server = trader.server.app:main

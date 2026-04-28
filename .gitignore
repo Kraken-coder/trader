@@ -1,0 +1,3 @@
+*.parquet
+*.rar
+qwen_trader_sft/

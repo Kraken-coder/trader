@@ -1,0 +1,17 @@
+openenv-core[core]>=0.2.2
+
+[dev]
+pytest>=8.0.0
+pytest-cov>=4.0.0
+
+[rl]
+numpy>=1.24.0
+torch>=2.2.0
+matplotlib>=3.8.0
+
+[sft]
+torch>=2.2.0
+datasets>=2.20.0
+accelerate>=0.33.0
+transformers>=4.44.0
+peft>=0.12.0
