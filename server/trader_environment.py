@@ -184,7 +184,9 @@ class TraderEnvironment(Environment):
         else:
             realized_return = (entry_price / exit_price) - 1.0
 
-        slippage_cost = entry_price * self._slippage_rate
+        # Keep reward components unit-consistent: realized_return is fractional,
+        # so slippage must also be expressed as a fractional round-trip cost.
+        slippage_cost = 2.0 * self._slippage_rate
         return realized_return - slippage_cost - (self._drawdown_penalty * worst_adverse)
 
     def _apply_action(self, action: TraderAction, current_price: float) -> float:
